@@ -111,9 +111,21 @@ Every generated post, lead reply, and review response is infused with the busine
 
 ## 8. MVP Scope
 
-**Included in MVP**: Full onboarding flow, Swipe Queue with Approve/Regenerate/Edit, Lead Capture Hub, Review & Reputation Radar, Trending Topics widget, Growth Analytics dashboard. All screens populated with realistic hyper-local sample data (Joe's Plumbing, Spartanburg, SC).
+**Included in MVP**: Full onboarding flow, Swipe Queue with Approve/Regenerate/Edit, Lead Capture Hub, Review & Reputation Radar, Trending Topics widget, Growth Analytics dashboard, PWA manifest (offline-capable, installable on mobile home screen). All screens populated with realistic hyper-local sample data (Joe's Plumbing, Spartanburg, SC).
 
 **Post-MVP**: Real OAuth integration for social channel connections (mockup-only in MVP), live weather API for Trending Topics, actual social media publishing API calls.
+
+---
+
+## 10. Roadmap (Next-Feature Goals)
+
+These three capabilities are scoped and ready for the next sprint:
+
+| # | Goal | Value |
+|---|---|---|
+| 1 | **Google Business Profile Sync** | Owners see, respond to, and track Google reviews inside LocalPulse alongside social channels. AI SEO responses auto-draft; one-tap posting back to GBP. |
+| 2 | **Job-Site Before/After Photo Posts** | Owner snaps two photos on-site, AI generates a hyper-local caption with trade keywords, post is injected into the publishing queue in one tap. Highest-converting content type for trades. |
+| 3 | **Team Collaboration Workspace** | Business owner invites office manager or apprentice, assigns roles (Admin / Poster / Viewer), and tracks who approved each post or replied to each lead via an activity log. |
 
 ---
 
