@@ -13,6 +13,7 @@ import stylesheet from "~/tailwind.css?url";
 import { useEffect } from "react";
 import { ThemeProvider } from "next-themes";
 import { ConfigurablesProvider, ConfigurablesCSSBridge } from "~/modules/configurables";
+import { AuthProvider } from "~/modules/authentication/use-authentication";
 import { GlobalError } from "./error";
 
 function ErrorReporter({ error }: { error: any }) {
@@ -67,6 +68,7 @@ export function ErrorBoundary() {
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
+  { rel: "manifest", href: "/manifest.json" },
 ];
 
 /**
@@ -97,7 +99,10 @@ export default function App() {
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="theme-color" content="#0f1117" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <Meta />
         <Links />
       </head>
@@ -105,8 +110,10 @@ export default function App() {
         <RouteChangeReporter />
         <ConfigurablesProvider>
           <ConfigurablesCSSBridge />
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <Outlet />
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
+            <AuthProvider>
+              <Outlet />
+            </AuthProvider>
           </ThemeProvider>
         </ConfigurablesProvider>
         <ScrollRestoration />

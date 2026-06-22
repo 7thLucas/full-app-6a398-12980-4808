@@ -64,61 +64,97 @@ export type TDefaultConfigurableData = {
   logoUrl: string;
   brandColor: TBrandColor;
   font: TFont;
-  // Mirror new schema fields here. Example:
-  //   maxItemsPerPage?: number;
-  //   enableNotifications?: boolean;
-  //   featuredCategories?: string[];
+  tagline?: string;
+  defaultBusinessName?: string;
+  defaultLocale?: string;
+  defaultIndustry?: string;
+  hourlyTradeRate?: number;
+  avgJobValue?: number;
+  enableOnboarding?: boolean;
+  queueTabLabel?: string;
+  leadsTabLabel?: string;
+  reviewsTabLabel?: string;
+  analyticsTabLabel?: string;
+  approveButtonLabel?: string;
+  regenerateButtonLabel?: string;
+  leadHubHeading?: string;
+  reputationHeading?: string;
+  analyticsHeading?: string;
+  localVisibilityScore?: number;
+  monthlySavedHours?: number;
+  highIntentLeadCount?: number;
+  reviewConversionCount?: number;
 };
 
 export const defaultConfigurablesData: TDefaultConfigurableData = {
-  appName: "My App",
+  appName: "LocalPulse",
   logoUrl: "",
+  tagline: "Built for the trades. Powered by AI.",
+  defaultBusinessName: "Joe's Plumbing",
+  defaultLocale: "Spartanburg, SC",
+  defaultIndustry: "Plumber",
+  hourlyTradeRate: 230,
+  avgJobValue: 1800,
+  enableOnboarding: true,
+  queueTabLabel: "Queue",
+  leadsTabLabel: "Leads",
+  reviewsTabLabel: "Reviews",
+  analyticsTabLabel: "Analytics",
+  approveButtonLabel: "APPROVE",
+  regenerateButtonLabel: "Regenerate",
+  leadHubHeading: "Lead Capture Hub",
+  reputationHeading: "Reputation Radar",
+  analyticsHeading: "Growth Analytics",
+  localVisibilityScore: 73,
+  monthlySavedHours: 8,
+  highIntentLeadCount: 5,
+  reviewConversionCount: 2,
   brandColor: {
     // Base
-    background:        "#ffffff",
-    foreground:        "#09090b",
+    background:        "#0f1117",
+    foreground:        "#f1f5f9",
     // Card
-    card:              "#ffffff",
-    cardForeground:    "#09090b",
+    card:              "#1a1f2e",
+    cardForeground:    "#f1f5f9",
     // Popover
-    popover:           "#ffffff",
-    popoverForeground: "#09090b",
+    popover:           "#1a1f2e",
+    popoverForeground: "#f1f5f9",
     // Primary
-    primary:           "#2563eb",
-    primaryForeground: "#ffffff",
+    primary:           "#00d4ff",
+    primaryForeground: "#0f1117",
     // Secondary
-    secondary:           "#f4f4f5",
-    secondaryForeground: "#18181b",
+    secondary:           "#1a1f2e",
+    secondaryForeground: "#f1f5f9",
     // Muted
-    muted:           "#f4f4f5",
-    mutedForeground: "#71717a",
+    muted:           "#252b3b",
+    mutedForeground: "#94a3b8",
     // Accent
-    accent:           "#f4f4f5",
-    accentForeground: "#18181b",
+    accent:           "#00d4ff",
+    accentForeground: "#0f1117",
     // Destructive
     destructive:           "#ef4444",
     destructiveForeground: "#fafafa",
     // Border / Input / Ring
-    border: "#e4e4e7",
-    input:  "#e4e4e7",
-    ring:   "#2563eb",
+    border: "#2a3147",
+    input:  "#252b3b",
+    ring:   "#00d4ff",
     // Charts
-    chart1: "#f97316",
-    chart2: "#0d9488",
-    chart3: "#1e3a5f",
-    chart4: "#d4a017",
-    chart5: "#ea580c",
+    chart1: "#00d4ff",
+    chart2: "#22c55e",
+    chart3: "#f59e0b",
+    chart4: "#8b5cf6",
+    chart5: "#ec4899",
     // Navbar
-    navbarBackground: "#ffffff",
+    navbarBackground: "#1a1f2e",
     // Sidebar
-    sidebarBackground:        "#fafafa",
-    sidebarForeground:        "#3f3f46",
-    sidebarPrimary:           "#2563eb",
-    sidebarPrimaryForeground: "#ffffff",
-    sidebarAccent:            "#f4f4f5",
-    sidebarAccentForeground:  "#18181b",
-    sidebarBorder:            "#e4e4e7",
-    sidebarRing:              "#2563eb",
+    sidebarBackground:        "#1a1f2e",
+    sidebarForeground:        "#f1f5f9",
+    sidebarPrimary:           "#00d4ff",
+    sidebarPrimaryForeground: "#0f1117",
+    sidebarAccent:            "#252b3b",
+    sidebarAccentForeground:  "#f1f5f9",
+    sidebarBorder:            "#2a3147",
+    sidebarRing:              "#00d4ff",
   },
   font: {
     headingFont: "Plus Jakarta Sans",
