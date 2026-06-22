@@ -1,0 +1,103 @@
+<section class="w-full h-full overflow-auto bg-white">
+  <div class="flex flex-col w-full h-full p-10">
+
+    <!-- Header -->
+    <div class="flex items-start justify-between mb-5">
+      <div>
+        <div class="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-full px-4 py-1.5 mb-3">
+          <span class="text-indigo-600 text-xs font-bold uppercase tracking-widest">North Star Metric</span>
+        </div>
+        <h2 class="text-3xl font-black text-slate-900">Weekly Verified Operations</h2>
+      </div>
+      <span class="bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full flex-shrink-0 mt-1">
+        Projected impact — based on your inputs
+      </span>
+    </div>
+
+    <!-- Operations defined (3 cols) -->
+    <div class="grid grid-cols-3 gap-3 mb-4">
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div class="text-2xl mb-2">✅</div>
+        <div class="font-bold text-slate-900 text-sm mb-1">Post Approved</div>
+        <div class="text-slate-500 text-xs leading-relaxed">User taps APPROVE in Swipe Queue — post enters the publishing queue with status Approved.</div>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div class="text-2xl mb-2">📬</div>
+        <div class="font-bold text-slate-900 text-sm mb-1">Lead Reply Sent</div>
+        <div class="text-slate-500 text-xs leading-relaxed">One-tap AI smart reply dispatched to an inbound lead from the Lead Capture Hub.</div>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div class="text-2xl mb-2">⭐</div>
+        <div class="font-bold text-slate-900 text-sm mb-1">Review Response Posted</div>
+        <div class="text-slate-500 text-xs leading-relaxed">AI-drafted SEO response deployed to a customer review from the Reputation Radar.</div>
+      </div>
+    </div>
+
+    <!-- Projection formula (dark band) -->
+    <div class="bg-indigo-950 rounded-2xl p-5 mb-4">
+      <div class="text-indigo-300 text-xs font-bold uppercase tracking-widest mb-4">Volume Projection — Adjust Assumptions to Match Your Business</div>
+      <div class="grid grid-cols-3 gap-4 mb-4">
+        <div class="text-center">
+          <div class="flex items-center justify-center gap-1.5 mb-1">
+            <span class="text-white font-black text-2xl">5</span>
+            <span class="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">Assumption</span>
+          </div>
+          <div class="text-indigo-300 text-xs">posts approved / week</div>
+        </div>
+        <div class="text-center">
+          <div class="flex items-center justify-center gap-1.5 mb-1">
+            <span class="text-white font-black text-2xl">3</span>
+            <span class="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">Assumption</span>
+          </div>
+          <div class="text-indigo-300 text-xs">lead replies / week</div>
+        </div>
+        <div class="text-center">
+          <div class="flex items-center justify-center gap-1.5 mb-1">
+            <span class="text-white font-black text-2xl">2</span>
+            <span class="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">Assumption</span>
+          </div>
+          <div class="text-indigo-300 text-xs">review responses / week</div>
+        </div>
+      </div>
+      <div class="border-t border-indigo-800 pt-4 text-center">
+        <span class="text-indigo-300 text-sm">5 + 3 + 2 = </span>
+        <span class="text-emerald-400 font-black text-2xl"> 10 verified operations / week</span>
+      </div>
+    </div>
+
+    <!-- Value derivation + annual impact -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Value Derivation</div>
+        <div class="flex flex-col gap-2">
+          <div class="flex justify-between text-xs">
+            <span class="text-slate-500">5 posts × 45 min × $65/hr</span>
+            <span class="font-bold text-slate-800">$244/wk</span>
+          </div>
+          <div class="flex justify-between text-xs">
+            <span class="text-slate-500">3 leads × 20 min × $65/hr</span>
+            <span class="font-bold text-slate-800">$65/wk</span>
+          </div>
+          <div class="flex justify-between text-xs">
+            <span class="text-slate-500">2 reviews × 30 min × $65/hr</span>
+            <span class="font-bold text-slate-800">$65/wk</span>
+          </div>
+          <div class="border-t border-slate-200 pt-2 flex justify-between text-xs">
+            <span class="font-black text-slate-900">Weekly total</span>
+            <span class="font-black text-slate-900">$374/wk</span>
+          </div>
+          <div class="mt-1">
+            <span class="bg-amber-50 border border-amber-200 text-amber-700 text-xs px-2 py-0.5 rounded">$65/hr — Assumption, adjust this</span>
+          </div>
+        </div>
+      </div>
+      <div class="bg-indigo-900 rounded-xl p-4 flex flex-col justify-center">
+        <div class="text-indigo-300 text-xs font-bold uppercase tracking-widest mb-3">Annual Impact</div>
+        <div class="text-5xl font-black text-white mb-1">$19,435</div>
+        <div class="text-emerald-400 text-sm font-bold mb-3">per year, per business account</div>
+        <div class="text-indigo-400 text-xs">$374/wk × 52 weeks = $19,435</div>
+      </div>
+    </div>
+
+  </div>
+</section>
