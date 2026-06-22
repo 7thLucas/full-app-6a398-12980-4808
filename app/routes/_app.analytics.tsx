@@ -1,20 +1,29 @@
 import { useState } from "react";
 import { useBusinessProfile } from "~/context/business-profile.context";
 import { useConfigurables } from "~/modules/configurables";
+import { useToast } from "~/context/toast.context";
+import { useRipple } from "~/hooks/use-ripple";
+import { useCountUp } from "~/hooks/use-count-up";
+import { useMounted } from "~/hooks/use-in-view";
+import { AnalyticsSkeleton } from "~/components/skeletons";
 import { invokeLLM } from "@qb/agentic";
 
 function CircularProgressRing({
   percentage,
+  active,
   size = 140,
   strokeWidth = 10,
 }: {
   percentage: number;
+  active: boolean;
   size?: number;
   strokeWidth?: number;
 }) {
+  const animated = useCountUp(percentage, active, 1200);
+  const display = Math.round(animated);
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const offset = circumference - (percentage / 100) * circumference;
+  const offset = circumference - (animated / 100) * circumference;
 
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
@@ -46,7 +55,7 @@ function CircularProgressRing({
         className="absolute inset-0 flex flex-col items-center justify-center text-center"
       >
         <span className="text-2xl font-bold" style={{ color: "var(--primary)" }}>
-          {percentage}%
+          {display}%
         </span>
         <span className="text-xs text-[var(--muted-foreground)] leading-tight px-2">
           Local Reach
@@ -60,10 +69,12 @@ function PhotoUploadModal({
   businessName,
   targetLocale,
   onClose,
+  onPosted,
 }: {
   businessName: string;
   targetLocale: string;
   onClose: () => void;
+  onPosted: () => void;
 }) {
   const [generating, setGenerating] = useState(false);
   const [caption, setCaption] = useState<string | null>(null);
@@ -141,7 +152,7 @@ function PhotoUploadModal({
           <button
             onClick={handleGenerate}
             disabled={generating}
-            className="flex-1 py-3 rounded-xl text-sm font-semibold press-effect"
+            className="tap-target flex-1 py-3 rounded-xl text-sm font-semibold"
             style={{
               background: generating ? "var(--muted)" : "rgba(0,212,255,0.1)",
               color: generating ? "var(--muted-foreground)" : "var(--primary)",
@@ -152,8 +163,8 @@ function PhotoUploadModal({
           </button>
           {caption && (
             <button
-              onClick={onClose}
-              className="flex-1 py-3 rounded-xl text-sm font-bold press-effect"
+              onClick={onPosted}
+              className="tap-target flex-1 py-3 rounded-xl text-sm font-bold"
               style={{ background: "#22c55e", color: "#ffffff" }}
             >
               Post Now
@@ -168,6 +179,11 @@ function PhotoUploadModal({
 export default function AnalyticsScreen() {
   const { profile } = useBusinessProfile();
   const { config, loading } = useConfigurables();
+  const { showToast } = useToast();
+  const ripple = useRipple();
+
+  // `mounted` triggers count-up animations once the tab becomes visible.
+  const mounted = useMounted(520);
 
   const businessName = profile?.businessName || config?.defaultBusinessName || "Joe's Plumbing";
   const targetLocale = profile?.targetLocale || config?.defaultLocale || "Spartanburg, SC";
@@ -183,7 +199,27 @@ export default function AnalyticsScreen() {
   const savedValue = monthlySavedHours * hourlyTradeRate;
   const pipelineValue = highIntentLeadCount * avgJobValue + reviewConversionCount * Math.round(avgJobValue * 0.6);
 
+  // Animated tickers — count up from 0 once the tab is visible.
+  const savedValueAnim = Math.round(useCountUp(savedValue, mounted, 1100));
+  const pipelineValueAnim = Math.round(useCountUp(pipelineValue, mounted, 1100));
+
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+
+  if (!mounted) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[var(--background)] px-4 pt-4">
+        <header className="mb-4">
+          <h1 className="text-2xl font-bold text-[var(--foreground)] tracking-tight">
+            {heading}
+          </h1>
+          <p className="text-xs text-[var(--muted-foreground)] mt-1">
+            {businessName} · {targetLocale}
+          </p>
+        </header>
+        <AnalyticsSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-[var(--background)] px-4 pt-4">
@@ -203,7 +239,7 @@ export default function AnalyticsScreen() {
           📍 Local Map Visibility Index
         </h3>
         <div className="flex items-center gap-5">
-          <CircularProgressRing percentage={localVisibilityScore} />
+          <CircularProgressRing percentage={localVisibilityScore} active={mounted} />
           <div>
             <div className="text-lg font-bold text-[var(--foreground)] mb-1">
               {localVisibilityScore}% Visibility
@@ -234,7 +270,7 @@ export default function AnalyticsScreen() {
           className="text-3xl font-bold tracking-tight mb-1"
           style={{ color: "var(--primary)", fontFamily: "monospace" }}
         >
-          ${savedValue.toLocaleString()} saved
+          ${savedValueAnim.toLocaleString()} saved
         </div>
         <p className="text-xs text-[var(--muted-foreground)] mb-3">
           Based on {monthlySavedHours} hrs saved @ ${hourlyTradeRate}/hr trade rate
@@ -263,7 +299,7 @@ export default function AnalyticsScreen() {
           className="text-3xl font-bold tracking-tight mb-1"
           style={{ color: "#22c55e", fontFamily: "monospace" }}
         >
-          ${pipelineValue.toLocaleString()} in pipeline
+          ${pipelineValueAnim.toLocaleString()} in pipeline
         </div>
         <p className="text-xs text-[var(--muted-foreground)] mb-3 leading-relaxed">
           {highIntentLeadCount} high-intent leads × avg ${avgJobValue.toLocaleString()} job +{" "}
@@ -317,8 +353,11 @@ export default function AnalyticsScreen() {
 
       {/* Job-Site Photo Post quick action */}
       <button
-        onClick={() => setShowPhotoModal(true)}
-        className="glass-card p-4 mb-4 w-full text-left press-effect transition-all duration-150 flex items-center gap-4"
+        onClick={(e) => {
+          ripple(e);
+          setShowPhotoModal(true);
+        }}
+        className="tap-target glass-card p-4 mb-4 w-full text-left transition-all duration-150 flex items-center gap-4"
         style={{
           border: "1px solid rgba(0,212,255,0.2)",
         }}
@@ -347,6 +386,10 @@ export default function AnalyticsScreen() {
           businessName={businessName}
           targetLocale={targetLocale}
           onClose={() => setShowPhotoModal(false)}
+          onPosted={() => {
+            setShowPhotoModal(false);
+            showToast("Job-site photo posted to queue ✅", "success");
+          }}
         />
       )}
     </div>

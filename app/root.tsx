@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { ThemeProvider } from "next-themes";
 import { ConfigurablesProvider, ConfigurablesCSSBridge } from "~/modules/configurables";
 import { AuthProvider } from "~/modules/authentication/use-authentication";
+import { ToastProvider } from "~/context/toast.context";
 import { GlobalError } from "./error";
 
 function ErrorReporter({ error }: { error: any }) {
@@ -112,7 +113,9 @@ export default function App() {
           <ConfigurablesCSSBridge />
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
             <AuthProvider>
-              <Outlet />
+              <ToastProvider>
+                <Outlet />
+              </ToastProvider>
             </AuthProvider>
           </ThemeProvider>
         </ConfigurablesProvider>

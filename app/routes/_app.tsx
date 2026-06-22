@@ -3,6 +3,7 @@ import { BottomTabBar } from "~/components/bottom-tab-bar";
 import { BusinessProfileProvider, useBusinessProfile } from "~/context/business-profile.context";
 import { useConfigurables } from "~/modules/configurables";
 import { OnboardingWizard } from "~/components/onboarding-wizard";
+import { PWAInstallBanner } from "~/components/pwa-install-banner";
 
 function AppShell() {
   const { isOnboarded, setProfile } = useBusinessProfile();
@@ -29,6 +30,7 @@ function AppShell() {
           <Outlet />
         </main>
       </div>
+      <PWAInstallBanner />
       <BottomTabBar />
     </div>
   );

@@ -1,6 +1,72 @@
 import { useState } from "react";
 import type { BusinessProfile } from "~/context/business-profile.context";
 import { useConfigurables } from "~/modules/configurables";
+import { useRipple } from "~/hooks/use-ripple";
+
+const CONFETTI_COLORS = ["#00d4ff", "#22c55e", "#f59e0b", "#8b5cf6", "#ec4899"];
+
+function CompletionCelebration({ businessName }: { businessName: string }) {
+  const pieces = Array.from({ length: 24 });
+  return (
+    <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center px-6">
+      <div
+        className="absolute inset-0"
+        style={{ background: "rgba(15,17,23,0.92)", backdropFilter: "blur(6px)" }}
+      />
+      {/* confetti burst */}
+      <div className="absolute left-1/2 top-1/2 pointer-events-none">
+        {pieces.map((_, i) => {
+          const angle = (i / pieces.length) * Math.PI * 2;
+          const dist = 120 + Math.random() * 140;
+          const cx = Math.cos(angle) * dist;
+          const cy = Math.sin(angle) * dist + 60;
+          return (
+            <span
+              key={i}
+              className="confetti-piece"
+              style={
+                {
+                  background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+                  animationDelay: `${Math.random() * 0.15}s`,
+                  "--cx": `${cx}px`,
+                  "--cy": `${cy}px`,
+                  "--cr": `${Math.random() * 720 - 360}deg`,
+                } as React.CSSProperties
+              }
+            />
+          );
+        })}
+      </div>
+
+      <div className="relative flex flex-col items-center text-center">
+        <div
+          className="check-burst w-24 h-24 rounded-full flex items-center justify-center mb-6"
+          style={{
+            background: "rgba(34,197,94,0.15)",
+            border: "2px solid #22c55e",
+            boxShadow: "0 0 40px rgba(34,197,94,0.4)",
+          }}
+        >
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M4 12.5L9.5 18L20 6.5"
+              stroke="#22c55e"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">
+          You're all set, {businessName}! 🎉
+        </h2>
+        <p className="text-sm text-[var(--muted-foreground)] max-w-[280px]">
+          Your hyper-local content engine is live. Loading your first posts…
+        </p>
+      </div>
+    </div>
+  );
+}
 
 type OnboardingProps = {
   onComplete: (profile: BusinessProfile) => void;
@@ -26,6 +92,7 @@ const PLATFORMS = ["Facebook", "Instagram", "Google Business"];
 export function OnboardingWizard({ onComplete }: OnboardingProps) {
   const { config } = useConfigurables();
   const appName = config?.appName || "LocalPulse";
+  const ripple = useRipple();
 
   const [step, setStep] = useState(1);
   const [businessName, setBusinessName] = useState("");
@@ -33,8 +100,10 @@ export function OnboardingWizard({ onComplete }: OnboardingProps) {
   const [locale, setLocale] = useState("");
   const [brandTone, setBrandTone] = useState<BusinessProfile["brandTone"]>("Professional");
   const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([]);
+  const [celebrating, setCelebrating] = useState(false);
 
   const totalSteps = 5;
+  const resolvedName = businessName.trim() || "My Business";
 
   const togglePlatform = (platform: string) => {
     setConnectedPlatforms((prev) =>
@@ -42,19 +111,28 @@ export function OnboardingWizard({ onComplete }: OnboardingProps) {
     );
   };
 
-  const handleNext = () => {
+  const handleNext = (e: React.MouseEvent<HTMLElement>) => {
+    ripple(e);
     if (step < totalSteps) {
       setStep((s) => s + 1);
     } else {
-      onComplete({
-        businessName: businessName || "My Business",
-        industryVertical: industry || "Other",
-        targetLocale: locale || "Your City",
-        brandTone,
-        connectedPlatforms,
-      });
+      // Celebratory completion moment before dropping into the Swipe Queue.
+      setCelebrating(true);
+      setTimeout(() => {
+        onComplete({
+          businessName: resolvedName,
+          industryVertical: industry || "Other",
+          targetLocale: locale || "Your City",
+          brandTone,
+          connectedPlatforms,
+        });
+      }, 1900);
     }
   };
+
+  if (celebrating) {
+    return <CompletionCelebration businessName={resolvedName} />;
+  }
 
   const canProceed = () => {
     if (step === 1) return businessName.trim().length > 0;
@@ -106,7 +184,7 @@ export function OnboardingWizard({ onComplete }: OnboardingProps) {
       </div>
 
       {/* Step card */}
-      <div className="glass-card p-6 mb-6">
+      <div key={step} className="glass-card p-6 mb-6 page-enter">
         {step === 1 && (
           <div>
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-1">
@@ -144,8 +222,11 @@ export function OnboardingWizard({ onComplete }: OnboardingProps) {
               {INDUSTRY_OPTIONS.map((opt) => (
                 <button
                   key={opt}
-                  onClick={() => setIndustry(opt)}
-                  className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 press-effect"
+                  onClick={(e) => {
+                    ripple(e);
+                    setIndustry(opt);
+                  }}
+                  className="tap-target w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150"
                   style={{
                     background: industry === opt ? "rgba(0,212,255,0.15)" : "var(--muted)",
                     color: industry === opt ? "var(--primary)" : "var(--foreground)",
@@ -195,8 +276,11 @@ export function OnboardingWizard({ onComplete }: OnboardingProps) {
               {BRAND_TONES.map((tone) => (
                 <button
                   key={tone}
-                  onClick={() => setBrandTone(tone)}
-                  className="flex-1 min-w-[90px] py-3 rounded-xl text-sm font-semibold transition-all duration-150 press-effect"
+                  onClick={(e) => {
+                    ripple(e);
+                    setBrandTone(tone);
+                  }}
+                  className="tap-target flex-1 min-w-[90px] py-3 rounded-xl text-sm font-semibold transition-all duration-150"
                   style={{
                     background: brandTone === tone ? "var(--primary)" : "var(--muted)",
                     color: brandTone === tone ? "var(--primary-foreground)" : "var(--foreground)",
@@ -244,8 +328,11 @@ export function OnboardingWizard({ onComplete }: OnboardingProps) {
                       </span>
                     </div>
                     <button
-                      onClick={() => togglePlatform(platform)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 press-effect"
+                      onClick={(e) => {
+                        ripple(e);
+                        togglePlatform(platform);
+                      }}
+                      className="tap-target px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150"
                       style={{
                         background: connected ? "var(--primary)" : "transparent",
                         color: connected ? "var(--primary-foreground)" : "var(--primary)",
@@ -266,7 +353,7 @@ export function OnboardingWizard({ onComplete }: OnboardingProps) {
       <button
         onClick={handleNext}
         disabled={!canProceed()}
-        className="w-full py-4 rounded-xl font-bold text-base transition-all duration-200 press-effect disabled:opacity-40 disabled:cursor-not-allowed"
+        className="tap-target w-full py-4 rounded-xl font-bold text-base transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
         style={{
           background: canProceed() ? "var(--primary)" : "var(--muted)",
           color: canProceed() ? "var(--primary-foreground)" : "var(--muted-foreground)",

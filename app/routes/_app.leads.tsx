@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useBusinessProfile } from "~/context/business-profile.context";
 import { useConfigurables } from "~/modules/configurables";
+import { useToast } from "~/context/toast.context";
+import { useRipple } from "~/hooks/use-ripple";
+import { LeadRowSkeleton } from "~/components/skeletons";
+import { EmptyState } from "~/components/empty-state";
 import { generateLeads, type Lead } from "~/data/mock-data";
 
 const PLATFORM_ICONS: Record<string, string> = {
@@ -120,7 +124,7 @@ function AIReplyModal({
         <div className="flex gap-2">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl text-sm font-semibold press-effect"
+            className="tap-target flex-1 py-3 rounded-xl text-sm font-semibold"
             style={{
               background: "var(--muted)",
               color: "var(--muted-foreground)",
@@ -131,7 +135,7 @@ function AIReplyModal({
           </button>
           <button
             onClick={onMarkReplied}
-            className="flex-1 py-3 rounded-xl text-sm font-bold press-effect"
+            className="tap-target flex-1 py-3 rounded-xl text-sm font-bold"
             style={{
               background: "#22c55e",
               color: "#ffffff",
@@ -148,6 +152,8 @@ function AIReplyModal({
 export default function LeadsScreen() {
   const { profile } = useBusinessProfile();
   const { config, loading } = useConfigurables();
+  const { showToast } = useToast();
+  const ripple = useRipple();
 
   const businessName = profile?.businessName || config?.defaultBusinessName || "Joe's Plumbing";
   const targetLocale = profile?.targetLocale || config?.defaultLocale || "Spartanburg, SC";
@@ -158,11 +164,18 @@ export default function LeadsScreen() {
   );
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
+  const [booting, setBooting] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setBooting(false), 600);
+    return () => clearTimeout(t);
+  }, []);
+
   const handleMarkReplied = (leadId: string) => {
     setLeads((prev) =>
       prev.map((l) => (l.id === leadId ? { ...l, status: "Replied" } : l))
     );
     setSelectedLead(null);
+    showToast("AI Smart Reply sent ✅", "success");
   };
 
   const unansweredCount = leads.filter((l) => l.status === "Unanswered").length;
@@ -200,6 +213,15 @@ export default function LeadsScreen() {
       </header>
 
       {/* Lead cards */}
+      {booting ? (
+        <LeadRowSkeleton />
+      ) : leads.length === 0 ? (
+        <EmptyState
+          icon="📭"
+          title="No leads yet"
+          description="When customers message you on Facebook, Instagram, or Google, their leads land here — ready for a one-tap AI reply."
+        />
+      ) : (
       <div className="space-y-3">
         {leads.map((lead) => (
           <div
@@ -244,8 +266,11 @@ export default function LeadsScreen() {
             </p>
 
             <button
-              onClick={() => setSelectedLead(lead)}
-              className="w-full py-2.5 rounded-xl text-sm font-semibold press-effect transition-all duration-150 flex items-center justify-center gap-2"
+              onClick={(e) => {
+                ripple(e);
+                setSelectedLead(lead);
+              }}
+              className="tap-target w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 flex items-center justify-center gap-2"
               style={{
                 background: lead.status === "Replied"
                   ? "var(--muted)"
@@ -261,6 +286,7 @@ export default function LeadsScreen() {
           </div>
         ))}
       </div>
+      )}
 
       {/* Modal */}
       {selectedLead && (

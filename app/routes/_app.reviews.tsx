@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useBusinessProfile } from "~/context/business-profile.context";
 import { useConfigurables } from "~/modules/configurables";
+import { useToast } from "~/context/toast.context";
+import { useRipple } from "~/hooks/use-ripple";
+import { ReviewCardSkeleton } from "~/components/skeletons";
+import { EmptyState } from "~/components/empty-state";
 import { generateReviews, generateLocalTrends, type Review } from "~/data/mock-data";
 
 function StarRating({ stars, total = 5 }: { stars: number; total?: number }) {
@@ -26,7 +30,7 @@ function StarRating({ stars, total = 5 }: { stars: number; total?: number }) {
 function ReviewCard({ review, onToggleExpand, onPostResponse }: {
   review: Review & { expanded?: boolean };
   onToggleExpand: () => void;
-  onPostResponse: () => void;
+  onPostResponse: (e: React.MouseEvent<HTMLElement>) => void;
 }) {
   const starColor = review.ratingStars >= 4 ? "#22c55e" : review.ratingStars === 3 ? "#f59e0b" : "#ef4444";
 
@@ -75,7 +79,7 @@ function ReviewCard({ review, onToggleExpand, onPostResponse }: {
       >
         <button
           onClick={onToggleExpand}
-          className="w-full px-3 py-2 flex items-center justify-between press-effect"
+          className="tap-target w-full px-3 py-2 flex items-center justify-between"
         >
           <span className="text-xs font-semibold" style={{ color: "var(--primary)" }}>
             ✨ AI SEO Response
@@ -96,7 +100,8 @@ function ReviewCard({ review, onToggleExpand, onPostResponse }: {
       {/* Post response button */}
       <button
         onClick={onPostResponse}
-        className="w-full py-2.5 rounded-xl text-sm font-semibold press-effect transition-all duration-150 flex items-center justify-center gap-2"
+        disabled={review.isPosted}
+        className="tap-target w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 flex items-center justify-center gap-2"
         style={{
           background: review.isPosted ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.05)",
           color: review.isPosted ? "#22c55e" : "var(--foreground)",
@@ -112,6 +117,8 @@ function ReviewCard({ review, onToggleExpand, onPostResponse }: {
 export default function ReviewsScreen() {
   const { profile } = useBusinessProfile();
   const { config, loading } = useConfigurables();
+  const { showToast } = useToast();
+  const ripple = useRipple();
 
   const businessName = profile?.businessName || config?.defaultBusinessName || "Joe's Plumbing";
   const targetLocale = profile?.targetLocale || config?.defaultLocale || "Spartanburg, SC";
@@ -120,6 +127,12 @@ export default function ReviewsScreen() {
   const [reviews, setReviews] = useState<Array<Review & { expanded?: boolean }>>(() =>
     generateReviews(businessName, targetLocale)
   );
+
+  const [booting, setBooting] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setBooting(false), 600);
+    return () => clearTimeout(t);
+  }, []);
 
   const trends = generateLocalTrends(targetLocale);
 
@@ -133,10 +146,12 @@ export default function ReviewsScreen() {
     );
   };
 
-  const postResponse = (id: string) => {
+  const postResponse = (e: React.MouseEvent<HTMLElement>, id: string) => {
+    ripple(e);
     setReviews((prev) =>
       prev.map((r) => (r.id === id ? { ...r, isPosted: true } : r))
     );
+    showToast("Review response posted ✅", "success");
   };
 
   return (
@@ -148,6 +163,16 @@ export default function ReviewsScreen() {
         </h1>
       </header>
 
+      {booting ? (
+        <ReviewCardSkeleton />
+      ) : reviews.length === 0 ? (
+        <EmptyState
+          icon="⭐"
+          title="No reviews yet"
+          description="As customers leave reviews on Google and Facebook, they'll appear here with AI-drafted SEO responses ready to post."
+        />
+      ) : (
+      <>
       {/* Overall Score Card */}
       <div className="glass-card p-4 mb-4 flex items-center gap-4">
         <div className="text-center flex-shrink-0">
@@ -219,10 +244,12 @@ export default function ReviewsScreen() {
             key={review.id}
             review={review}
             onToggleExpand={() => toggleExpand(review.id)}
-            onPostResponse={() => postResponse(review.id)}
+            onPostResponse={(e) => postResponse(e, review.id)}
           />
         ))}
       </div>
+      </>
+      )}
 
       {/* Local Trending Topics */}
       <div className="glass-card p-4 mb-4">

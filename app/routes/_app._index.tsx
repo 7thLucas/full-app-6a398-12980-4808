@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useBusinessProfile } from "~/context/business-profile.context";
 import { useConfigurables } from "~/modules/configurables";
+import { useToast } from "~/context/toast.context";
+import { useRipple } from "~/hooks/use-ripple";
+import { QueueCardSkeleton } from "~/components/skeletons";
+import { EmptyState } from "~/components/empty-state";
 import {
   generateQueuePosts,
   type QueuePost,
@@ -37,6 +41,8 @@ function BellIcon() {
 export default function QueueScreen() {
   const { profile } = useBusinessProfile();
   const { config, loading } = useConfigurables();
+  const { showToast } = useToast();
+  const ripple = useRipple();
 
   const businessName = profile?.businessName || config?.defaultBusinessName || "Joe's Plumbing";
   const targetLocale = profile?.targetLocale || config?.defaultLocale || "Spartanburg, SC";
@@ -53,48 +59,65 @@ export default function QueueScreen() {
   const [editText, setEditText] = useState("");
   const [checklist, setChecklist] = useState([false, false]);
 
+  // Brief load skeleton so the screen never flashes blank.
+  const [booting, setBooting] = useState(true);
+  // Card transition state: animate the approved card out, the next card in.
+  const [cardAnim, setCardAnim] = useState<"in" | "exit">("in");
+
+  useEffect(() => {
+    const t = setTimeout(() => setBooting(false), 650);
+    return () => clearTimeout(t);
+  }, []);
+
   const currentPost = posts[currentIndex];
 
-  if (!currentPost) {
+  if (booting) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4 px-4">
-        <div className="text-5xl">🎉</div>
-        <h2 className="text-xl font-bold text-[var(--foreground)] text-center">
-          Queue Complete!
-        </h2>
-        <p className="text-sm text-[var(--muted-foreground)] text-center">
-          All posts approved. Your content is scheduled for {businessName}.
-        </p>
-        <button
-          onClick={() => {
-            setPosts(generateQueuePosts(businessName, targetLocale));
-            setCurrentIndex(0);
-          }}
-          className="mt-4 px-6 py-3 rounded-xl font-semibold text-sm press-effect"
-          style={{
-            background: "rgba(0,212,255,0.1)",
-            color: "var(--primary)",
-            border: "1px solid var(--primary)",
-          }}
-        >
-          Load More Posts
-        </button>
+      <div className="flex flex-col min-h-screen bg-[var(--background)]">
+        <QueueCardSkeleton />
       </div>
     );
   }
 
-  const handleApprove = () => {
+  if (!currentPost) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[var(--background)] px-4 pt-16">
+        <EmptyState
+          icon="🎉"
+          title="Queue Complete!"
+          description={`All posts approved and scheduled for ${businessName}. Fresh AI content is on the way.`}
+          ctaLabel="Load More Posts"
+          onCta={() => {
+            setPosts(generateQueuePosts(businessName, targetLocale));
+            setCurrentIndex(0);
+            setCardAnim("in");
+          }}
+        />
+      </div>
+    );
+  }
+
+  const handleApprove = (e: React.MouseEvent<HTMLElement>) => {
+    ripple(e);
+    if (cardAnim === "exit") return;
+    // Animate current card away with a green glow pulse, then advance.
+    setCardAnim("exit");
     setPosts((prev) =>
       prev.map((p, i) =>
         i === currentIndex ? { ...p, deliveryStatus: "Published" } : p
       )
     );
-    setCurrentIndex((i) => Math.min(i + 1, posts.length));
-    setIsEditing(false);
-    setSelectedFormat(0);
+    showToast("Post approved & queued ✅", "success");
+    setTimeout(() => {
+      setCurrentIndex((i) => Math.min(i + 1, posts.length));
+      setIsEditing(false);
+      setSelectedFormat(0);
+      setCardAnim("in");
+    }, 420);
   };
 
-  const handleRegenerate = () => {
+  const handleRegenerate = (e: React.MouseEvent<HTMLElement>) => {
+    ripple(e);
     // Cycle through next caption variant
     const variants = generateQueuePosts(businessName, targetLocale);
     const variant = variants[Math.floor(Math.random() * variants.length)];
@@ -103,6 +126,7 @@ export default function QueueScreen() {
         i === currentIndex ? { ...p, captionText: variant.captionText } : p
       )
     );
+    showToast("Caption regenerated ✨", "info");
   };
 
   const handleSaveEdit = () => {
@@ -110,11 +134,20 @@ export default function QueueScreen() {
       prev.map((p, i) => (i === currentIndex ? { ...p, captionText: editText } : p))
     );
     setIsEditing(false);
+    showToast("Caption saved", "success");
   };
 
-  const startEdit = () => {
+  const startEdit = (e: React.MouseEvent<HTMLElement>) => {
+    ripple(e);
     setEditText(currentPost.captionText);
     setIsEditing(true);
+  };
+
+  const handleSelectFormat = (e: React.MouseEvent<HTMLElement>, i: number) => {
+    ripple(e);
+    if (selectedFormat === i) return;
+    setSelectedFormat(i);
+    showToast(`Format set to ${ASPECT_FORMATS[i].label}`, "info");
   };
 
   const toggleCheck = (idx: number) => {
@@ -171,7 +204,12 @@ export default function QueueScreen() {
       </div>
 
       {/* Post preview card */}
-      <div className="glass-card overflow-hidden mb-4">
+      <div
+        key={currentIndex}
+        className={`glass-card overflow-hidden mb-4 ${
+          cardAnim === "exit" ? "card-approve-exit" : "card-slide-in"
+        }`}
+      >
         {/* Image preview area */}
         <div
           className="relative w-full"
@@ -239,14 +277,14 @@ export default function QueueScreen() {
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={handleSaveEdit}
-                  className="flex-1 py-2 rounded-lg text-xs font-semibold press-effect"
+                  className="tap-target flex-1 py-2 rounded-lg text-xs font-semibold"
                   style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
                 >
                   Save
                 </button>
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="flex-1 py-2 rounded-lg text-xs font-semibold press-effect"
+                  className="tap-target flex-1 py-2 rounded-lg text-xs font-semibold"
                   style={{
                     background: "var(--muted)",
                     color: "var(--muted-foreground)",
@@ -270,8 +308,8 @@ export default function QueueScreen() {
         {ASPECT_FORMATS.map((fmt, i) => (
           <button
             key={i}
-            onClick={() => setSelectedFormat(i)}
-            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold transition-all duration-150 press-effect whitespace-nowrap"
+            onClick={(e) => handleSelectFormat(e, i)}
+            className="tap-target flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold transition-all duration-150 whitespace-nowrap"
             style={{
               background: selectedFormat === i ? "rgba(0,212,255,0.15)" : "var(--muted)",
               color: selectedFormat === i ? "var(--primary)" : "var(--muted-foreground)",
@@ -288,7 +326,7 @@ export default function QueueScreen() {
       <div className="flex flex-col gap-3 mb-6">
         <button
           onClick={handleRegenerate}
-          className="w-full py-3 rounded-xl font-semibold text-sm press-effect transition-all duration-150 flex items-center justify-center gap-2"
+          className="tap-target w-full py-3 rounded-xl font-semibold text-sm transition-all duration-150 flex items-center justify-center gap-2"
           style={{
             background: "rgba(255,255,255,0.05)",
             color: "var(--foreground)",
@@ -300,7 +338,7 @@ export default function QueueScreen() {
         <button
           onClick={startEdit}
           disabled={isEditing}
-          className="w-full py-3 rounded-xl font-semibold text-sm press-effect transition-all duration-150 flex items-center justify-center gap-2"
+          className="tap-target w-full py-3 rounded-xl font-semibold text-sm transition-all duration-150 flex items-center justify-center gap-2"
           style={{
             background: "rgba(255,255,255,0.05)",
             color: "var(--foreground)",
@@ -311,7 +349,8 @@ export default function QueueScreen() {
         </button>
         <button
           onClick={handleApprove}
-          className="w-full py-4 rounded-xl font-bold text-base press-effect approve-glow transition-all duration-150 flex items-center justify-center gap-2"
+          disabled={cardAnim === "exit"}
+          className="tap-target w-full py-4 rounded-xl font-bold text-base approve-glow transition-all duration-150 flex items-center justify-center gap-2"
           style={{
             background: "#22c55e",
             color: "#ffffff",
